@@ -21,7 +21,10 @@ pipeline {
     }
     stage ('Docker Image') {
       steps {
-       echo 'Docker Image' 
+        echo 'Docker Image'
+        dir("${env.WORKSPACE}") {
+          sh 'docker build -t aws14-spring-petclinic:1.0'
+        }
       }
     }
     stage ('Image Push') {
@@ -29,9 +32,9 @@ pipeline {
        echo 'Image Push' 
       }
     }
-    stage ('--') {
+    stage ('Codedeploy') {
       steps {
-       echo 'Image Push' 
+       echo 'Codedeploy' 
       }
     }
   }
