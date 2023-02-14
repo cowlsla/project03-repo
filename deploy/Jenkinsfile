@@ -24,7 +24,7 @@ pipeline {
        echo 'Image Push' 
       }
     }
-    stage ('Image Push') {
+    stage ('--') {
       steps {
        echo 'Image Push' 
       }
