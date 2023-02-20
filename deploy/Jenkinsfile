@@ -52,6 +52,7 @@ pipeline {
     stage ('Codedeploy') {
       steps {
        echo 'Codedeploy' 
+        sh 'aws deploy create-deployment --application-name project03-spring-petclinic --deployment-config-name CodeDeployDefault.OneAtATime --deployment-group-name project03-deploy --description "My GitHub deployment demo" --github-location repository=repository,commitId=commit-id' 
       }
     }
   }
