@@ -2,6 +2,6 @@ version: '3.9'
 services:
   aws14-spring-petclinic:
     image: ${IMAGE}:${TAG}
-    container_name: aws14-spring-petclinic
+    container_name: project03-spring-petclinic
     ports:
       - "8080:8080"
