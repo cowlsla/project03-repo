@@ -4,4 +4,4 @@ services:
     image: ${IMAGE}:${TAG}
     container_name: project03-spring-petclinic
     ports:
-      - "8081:8081"
+      - "80:80"
