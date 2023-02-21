@@ -58,7 +58,6 @@ pipeline {
     stage ('Codedeploy') {
       steps {
        echo 'Codedeploy' 
-        aws deploy create-deployment --application-name project03 --s3-location bucket=project03-tfbackend-s3,key=*.zip,bundleType=zip,eTag=0b0f53dc1559c3d575f09731e223f6f6 --deployment-group-name project03-app --description "THIS IS CODEDEPLOY"
       }
     }
   }
