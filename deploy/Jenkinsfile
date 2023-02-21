@@ -57,10 +57,6 @@ pipeline {
     }
     stage ('Codedeploy') {
       steps {
-        withAWS(credentials: 'aws-creds', region: 'us-west-2') {
-          sh 'aws deploy push --application-name myapp --s3-location s3://project03-tfbackend-s3/*.zip --source .'
-          sh 'aws deploy create-deployment --application-name project03 --deployment-config-name CodeDeployDefault.OneAtATime --deployment-group-name project03-app --s3-location bucket=project03-tfbackend-s3,bundleType=zip,key=*.zip' 
-        }
       }
     }
   }
