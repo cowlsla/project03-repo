@@ -57,7 +57,9 @@ pipeline {
     }
     stage ('Codedeploy') {
       steps {
+        echo 'codedeploy' 
       }
     }
-  }
+   }
 }
+
