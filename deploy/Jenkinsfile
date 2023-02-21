@@ -58,12 +58,6 @@ pipeline {
     stage ('Codedeploy') {
       steps {
        echo 'Codedeploy' 
-        script{
-          aws deploy create-deployment --application-name CodeDeploy project03 \
-          --deployment-config-name CodeDeployDefault.OneAtATime \
-          --deployment-group-name project03-app \
-          --s3-location bucket=project03-tfbackend-s3,bundleType=zip,key=deploy-$IMAGE_TAG.zip
-        }
       }
     }
   }
