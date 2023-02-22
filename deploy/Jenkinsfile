@@ -73,7 +73,7 @@ pipeline {
                   --region ${REGION} \\
                   --application-name ${APPLICATION_NAME} \\
                   --deployment-group-name ${DEPLOYMENT_GROUP} \\
-                  --revision-location '{"${REVISION_TYPE}Location": "${ECR_REPOSITORY}/${ECR_DOCKER_IMAGE}:${ECR_DOCKER_TAG}"}' \\
+                  --gitgub-Location "${ECR_REPOSITORY}/${ECR_DOCKER_IMAGE}:${ECR_DOCKER_TAG}"}' \\
                   --deployment-config-name CodeDeployDefault.AllAtOnce
                 """
                     // 배포 상태 확인
