@@ -1,73 +1,94 @@
 pipeline {
-  agent any
-  tools {
-    maven "M3"
-    jdk "JDK11"
-  }
+    agent any
+    tools {
+        maven 'M3'
+        jdk 'JDK11'
+    }   
 
-  environment {
-    AWS_CREDENTIAL_NAME = "awsEcrCredential"
-    AWS_ACCOUNT_ID = "257307634175"
-    REGION = "ap-northeast-2"
-    DOCKER_IMAGE_NAME = "project03-spring-petclinic"
-    DOCKER_TAG = "1.0"
-    REVISION_TYPE = 'GitHub' 
-    COMMIT_ID = '$(git rev-parse HEAD)'
-    ECR_REPOSITORY = "${AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-2.amazonaws.com"
-    ECR_DOCKER_IMAGE = "${ECR_REPOSITORY}/${DOCKER_IMAGE_NAME}"
-    ECR_DOCKER_TAG = "${DOCKER_TAG}"
-  }
-  stages {
-    stage ('Git Fetch') {
-      steps {
-        echo 'Git Fetch'
-        git url: "${REPOSITORY_NAME}", branch: "${BRANCH_NAME}", credentialsId: 'gitCredential'
-      }
+    environment {
+        AWS_CREDENTIAL_NAME = "AWSCredentials"
+        REGION = "ap-northeast-2"
+        DOCKER_IMAGE_NAME="project03-spring-petclinic"
+        DOCKER_TAG="1.0"
+        ECR_REPOSITORY = "${params.AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-2.amazonaws.com"
+        ECR_DOCKER_IMAGE = "${ECR_REPOSITORY}/${DOCKER_IMAGE_NAME}"
+        ECR_DOCKER_TAG = "${DOCKER_TAG}"
     }
-    stage ('Mvn Build') {
-      steps {
-        echo 'Mvn Build'
-        sh 'mvn -Dmaven.test.failure.ignore=true clean package'
-      }
-    }
-    stage ('Docker Image') {
-      steps {
-        echo 'Docker Image'
-        dir("${env.WORKSPACE}") {
-          sh "docker build -t ${ECR_DOCKER_IMAGE}:${ECR_DOCKER_TAG} ./"
+
+    stages {
+        stage('Git clone') {
+            steps {
+                git url: 'https://github.com/cowlsla/project03-repo', branch: 'main', credentialsId: 'cowlsla'
+            }
+            post {
+                success {
+                    echo 'success clone project'
+                }
+                failure {
+                    error 'fail clone project' // exit pipeline
+                }
+            }
         }
-      }
-    }
-    stage ('Image Push') {
-      steps {
-        echo 'Image Push' 
-        script{
-          // cleanup current user docker credentials
-          sh 'rm -f ~/.dockercfg ~/.docker/config.json || true'                    
+        
+        stage ('mvn Build') {
+            steps {
+                sh 'mvn -Dmaven.test.failure.ignore=true install' 
+            }
+            post {
+                success {
+                    junit 'target/surefire-reports/**/*.xml' 
+                }
+            }
+        }
+        
+        stage ('Docker Build') {
+            steps {
+                dir("${env.WORKSPACE}") {
+                    sh 'docker build -t ${ECR_DOCKER_IMAGE}:${ECR_DOCKER_TAG} .'
+                }
+            }
+            
+            post {
+                success {
+                    echo "Docker build success!"
+                }
+            }
+        }       
+
+        stage('Push Docker Image') {
+            steps {
+                echo "Push Docker Image to ECR"
+                script{
+                    // cleanup current user docker credentials
+                    sh 'rm -f ~/.dockercfg ~/.docker/config.json || true'                    
                    
-          docker.withRegistry("https://${ECR_REPOSITORY}", "ecr:${REGION}:${AWS_CREDENTIAL_NAME}") {
-            docker.image("${ECR_DOCKER_IMAGE}:${ECR_DOCKER_TAG}").push()
-          }
+                    docker.withRegistry("https://${ECR_REPOSITORY}", "ecr:${REGION}:${AWS_CREDENTIAL_NAME}") {
+                      docker.image("${ECR_DOCKER_IMAGE}:${ECR_DOCKER_TAG}").push()
+                    }
+                }
+            }
+            post {
+                success {
+                    echo "Push Docker Image success!"
+                }
+            }
         }
-      }
-    }
-    stage('Upload to S3') {
-        steps {
-            echo "Upload to S3"
-            zip -r deploy-1.0.zip ./scripts appspec.yml
-            aws s3 cp --region ap-northeast-2 --acl private ./deploy-1.0.zip s3://project03-codeproject
-          }
-      }
-    stage('Codedeploy Workload') {
-        steps {
-            echo "Codedeploy Workload"   
-            sh '''
-                aws deploy create-deployment --application-name project03 \
-                --deployment-config-name CodeDeployDefault.OneAtATime \
-                --deployment-group-name project03-deploy \
-                --s3-location bucket=project03-codedeploy,bundleType=zip,key=deploy-1.0.zip
-                '''
+        stage('Upload to S3') {
+            steps {
+                echo "Upload to S3"
+                zip -r deploy-1.0.zip ./scripts appspec.yml
+                aws s3 cp --region ap-northeast-2 --acl private ./deploy-1.0.zip s3://project03-codeproject
+            }
+        }
+        stage('Codedeploy Workload') {
+            steps {
+                echo "Codedeploy Workload"   
+                sh '''
+                    aws deploy create-deployment --application-name project03 \
+                    --deployment-config-name CodeDeployDefault.OneAtATime \
+                    --deployment-group-name project03-deploy \
+                    --s3-location bucket=project03-codedeploy,bundleType=zip,key=deploy-1.0.zip
+                    '''
         }
     }
-  }
 }
