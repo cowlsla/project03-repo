@@ -77,7 +77,7 @@ pipeline {
                 ]]) {
                     // CodeDeploy 배포 시작
                    sh ""
-                      aws deploy create-deployment \\
+                      aws deploy create-deployment
                         --region ${env.REGION} \\
                         --application-name ${env.APPLICATION_NAME} \\
                         --deployment-group-name ${env.DEPLOYMENT_GROUP} \\
