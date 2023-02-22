@@ -71,16 +71,16 @@ pipeline {
      stage('Deploy to CodeDeploy') {
        steps {
          // CodeDeploy 배포 시작
-                   sh ""
-                      aws deploy create-deployment
+                   sh "
+                      aws deploy create-deployment \\
                         --region ap-northeast-2 \\
                         --application-name ${env.APPLICATION_NAME} \\
                         --deployment-group-name ${env.DEPLOYMENT_GROUP} \\
                         --revision-type ${env.REVISION_TYPE} \\
                         --${env.REVISION_TYPE.lower()}-location imageUri=${env.ECR_REGISTRY}/${env.ECR_REPOSITORY}:${env.IMAGE_TAG} \\
                         --target-instances tagFilters='[{'Key':'${env.TARGET_TAG_KEY}','Type':'KEY_AND_VALUE','Value':'${env.TARGET_TAG_VALUE}'}]' \\
-                        --wait
-                      ""
+                        --wait"
+                      
                     
                     // 배포 상태 확인
                     script {
