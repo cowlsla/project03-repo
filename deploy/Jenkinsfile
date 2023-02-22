@@ -75,7 +75,7 @@ pipeline {
              --deployment-group-name ${DEPLOYMENT_GROUP} \
              --revision-location '{"revisionType":"${REVISION_TYPE}","gitHubLocation":{"repository":"${REPOSITORY_NAME}","commitId":"${COMMIT_ID}"}}' \
              --deployment-config-name CodeDeployDefault.AllAtOnce \
-             --wait
+             --no-wait
             """
                     // 배포 상태 확인
                     script {
