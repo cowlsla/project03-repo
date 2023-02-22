@@ -64,23 +64,8 @@ pipeline {
                   userRemoteConfigs: [[url: env.REPOSITORY_NAME]]])
       }
     }
-    stage('Upload to S3') {
-        steps {
-            echo "Upload to S3"
-            sh 'zip deploy-1.0.zip folder/deploy/ appspec.yml'
-            sh 'aws s3 cp --region ap-northeast-2 --acl private ./deploy-1.0.zip s3://project00-codedeploy'
-        }
-    }
-    stage('Codedeploy Workload') {
-        steps {
-            echo "Codedeploy Workload"   
-            sh '''
-                aws deploy create-deployment --application-name project03 \
-                --deployment-config-name CodeDeployDefault.OneAtATime \
-                --deployment-group-name project03-deploy \
-                --s3-location bucket=project03-codedeploy,bundleType=zip,key=deploy-1.0.zip
-                '''
-            }
+    stage('민지야 힘내... 누님들 빠이팅입니다.! 그래도 쌤이 이거 다 알려주실겁니다...
+          
         }
     }
 }
