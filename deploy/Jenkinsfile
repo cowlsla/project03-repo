@@ -4,12 +4,7 @@ pipeline {
     maven "M3"
     jdk "JDK11"
   }
-  parameters{
-    string(name: 'APPLICATION_NAME', defaultValue: 'project03', description: 'Name of the AWS CodeDeploy application')
-    string(name: 'DEPLOYMENT_GROUP', defaultValue: 'project03-deploy', description: 'Name of the AWS CodeDeploy deployment group')
-    string(name: 'REPOSITORY_NAME', defaultValue: 'https://github.com/cowlsla/project03-repo', description: 'Name of the GitHub repository')
-    string(name: 'BRANCH_NAME', defaultValue: 'main', description: 'Name of the Git branch')
-  }
+
   environment {
     AWS_CREDENTIAL_NAME = "awsEcrCredential"
     AWS_ACCOUNT_ID = "257307634175"
