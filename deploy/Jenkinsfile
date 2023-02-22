@@ -56,6 +56,14 @@ pipeline {
         }
       }
     }
+    stage('Checkout') {
+      steps {
+        echo 'Checkout'
+        checkout([$class: 'GitSCM', 
+                  branches: [[name: env.BRANCH_NAME]], 
+                  userRemoteConfigs: [[url: env.REPOSITORY_NAME]]])
+      }
+    }
     stage('Upload to S3') {
         steps {
             echo "Upload to S3"
