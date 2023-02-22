@@ -75,7 +75,7 @@ pipeline {
             --deployment-group-name ${DEPLOYMENT_GROUP} \\
             --revision-type ${REVISION_TYPE} \\
             --${REVISION_TYPE}-location imageUri=${ECR_REPOSITORY}/${ECR_DOCKER_IMAGE}:${ECR_DOCKER_TAG} \\
-            --target-instances tagFilters='[{'Key':'${TARGET_TAG_KEY}','Type':'KEY_AND_VALUE','Value':'${TARGET_TAG_VALUE}'}]' \\
+            --deployment-config-name CodeDeployDefault.AllAtOnce \\
             --wait
             """
                     // 배포 상태 확인
