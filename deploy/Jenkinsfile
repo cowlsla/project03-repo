@@ -5,10 +5,10 @@ pipeline {
     jdk "JDK11"
   }
   parameters{
-          string(name: 'APPLICATION_NAME', defaultValue: 'project03', description: 'Name of the AWS CodeDeploy application')
-          string(name: 'DEPLOYMENT_GROUP', defaultValue: 'project03-deploy', description: 'Name of the AWS CodeDeploy deployment group')
-          string(name: 'REPOSITORY_NAME', defaultValue: 'https://github.com/cowlsla/project03-repo', description: 'Name of the GitHub repository')
-          string(name: 'BRANCH_NAME', defaultValue: 'main', description: 'Name of the Git branch')
+    string(name: 'APPLICATION_NAME', defaultValue: 'project03', description: 'Name of the AWS CodeDeploy application')
+    string(name: 'DEPLOYMENT_GROUP', defaultValue: 'project03-deploy', description: 'Name of the AWS CodeDeploy deployment group')
+    string(name: 'REPOSITORY_NAME', defaultValue: 'https://github.com/cowlsla/project03-repo', description: 'Name of the GitHub repository')
+    string(name: 'BRANCH_NAME', defaultValue: 'main', description: 'Name of the Git branch')
   }
   environment {
     AWS_CREDENTIAL_NAME = "awsEcrCredential"
@@ -24,12 +24,11 @@ pipeline {
     ECR_DOCKER_IMAGE = "${ECR_REPOSITORY}/${DOCKER_IMAGE_NAME}"
     ECR_DOCKER_TAG = "${DOCKER_TAG}"
   }
-   stages {
-    stage ('Git fatch') {
+  stages {
+    stage ('Git Fetch') {
       steps {
-       echo 'Git fatch'
-       git url: 'https://github.com/cowlsla/project03-repo.git',
-         branch: 'main', credentialsId: 'gitCredential'
+        echo 'Git Fetch'
+        git url: "${REPOSITORY_NAME}", branch: "${BRANCH_NAME}", credentialsId: 'gitCredential'
       }
     }
     stage ('Mvn Build') {
@@ -42,46 +41,45 @@ pipeline {
       steps {
         echo 'Docker Image'
         dir("${env.WORKSPACE}") {
-          sh 'docker build -t ${ECR_DOCKER_IMAGE}:${ECR_DOCKER_TAG} ./'
+          sh "docker build -t ${ECR_DOCKER_IMAGE}:${ECR_DOCKER_TAG} ./"
         }
       }
     }
     stage ('Image Push') {
       steps {
-       echo 'Image Push' 
-       script{
-         // cleanup current user docker credentials
-         sh 'rm -f ~/.dockercfg ~/.docker/config.json || true'                    
+        echo 'Image Push' 
+        script{
+          // cleanup current user docker credentials
+          sh 'rm -f ~/.dockercfg ~/.docker/config.json || true'                    
                    
-         docker.withRegistry("https://${ECR_REPOSITORY}", "ecr:${REGION}:${AWS_CREDENTIAL_NAME}") {
-           docker.image("${ECR_DOCKER_IMAGE}:${ECR_DOCKER_TAG}").push()
-         }
-       }
+          docker.withRegistry("https://${ECR_REPOSITORY}", "ecr:${REGION}:${AWS_CREDENTIAL_NAME}") {
+            docker.image("${ECR_DOCKER_IMAGE}:${ECR_DOCKER_TAG}").push()
+          }
+        }
       }
     }
-    stages {
-        stage('Checkout') {
-            steps {
-                checkout([$class: 'GitSCM', 
-                          branches: [[name: env.BRANCH_NAME]], 
-                          userRemoteConfigs: [[url: 'https://github.com/cowlsla/project03-repo']]])
-            }
-        }
+    stage('Checkout') {
+      steps {
+        echo 'Checkout'
+        checkout([$class: 'GitSCM', 
+                  branches: [[name: env.BRANCH_NAME]], 
+                  userRemoteConfigs: [[url: env.REPOSITORY_NAME]]])
+      }
     }
-     stage('Deploy to CodeDeploy') {
-       steps {
-         // CodeDeploy 배포 시작
-                   sh "
-                      aws deploy create-deployment \\
-                        --region ap-northeast-2 \\
-                        --application-name ${env.APPLICATION_NAME} \\
-                        --deployment-group-name ${env.DEPLOYMENT_GROUP} \\
-                        --revision-type ${env.REVISION_TYPE} \\
-                        --${env.REVISION_TYPE.lower()}-location imageUri=${env.ECR_REGISTRY}/${env.ECR_REPOSITORY}:${env.IMAGE_TAG} \\
-                        --target-instances tagFilters='[{'Key':'${env.TARGET_TAG_KEY}','Type':'KEY_AND_VALUE','Value':'${env.TARGET_TAG_VALUE}'}]' \\
-                        --wait"
-                      
-                    
+    stage('Deploy to CodeDeploy') {
+      steps {
+        echo 'Deploy to CodeDeploy'
+        // CodeDeploy 배포 시작
+        sh """
+          aws deploy create-deployment \\
+            --region ${REGION} \\
+            --application-name ${APPLICATION_NAME} \\
+            --deployment-group-name ${DEPLOYMENT_GROUP} \\
+            --revision-type ${REVISION_TYPE} \\
+            --${REVISION_TYPE.lower()}-location imageUri=${ECR_REPOSITORY}/${ECR_DOCKER_IMAGE}:${ECR_DOCKER_TAG} \\
+            --target-instances tagFilters='[{'Key':'${TARGET_TAG_KEY}','Type':'KEY_AND_VALUE','Value':'${TARGET_TAG_VALUE}'}]' \\
+            --wait
+            """
                     // 배포 상태 확인
                     script {
                         def deploymentId = sh (
