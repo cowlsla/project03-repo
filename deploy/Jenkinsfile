@@ -56,37 +56,37 @@ pipeline {
       }
     }
      stage('Deploy to CodeDeploy') {
-            environment {
-                APPLICATION_NAME = 'project03'
-                DEPLOYMENT_GROUP = 'project03-deploy'
-            }
-            
-            steps {
-                withAWS(region: 'ap-northesat-2', credentials: 'aws-credentials') {
-                    deployment = awsDeploy applicationName: env.APPLICATION_NAME,
-                                                deploymentGroup: env.DEPLOYMENT_GROUP,
-                                                revision: [
-                                                    gitHubLocation: [
-                                                        commitId: env.GIT_COMMIT,
-                                                        repository: 'cowlsla/project03-repo',
-                                                        branch: 'main'
-                                                    ]
-                                                ],
-                                                deploymentConfig: 'CodeDeployDefault.AllAtOnce'
-                                                
-                    deploymentId = deployment.deploymentId
-                    timeout(time: 60, unit: 'MINUTES') {
-                        waitUntil {
-                            status = sh (
-                                script: "aws deploy get-deployment --deployment-id $deploymentId --query 'deploymentInfo.status'",
-                                returnStdout: true
-                            ).trim()
-                            println "Deployment status: ${status}"
-                            status == 'Succeeded'
-                        }
-                    }
-                }
-            }
-        }
-    }
+       environment {
+           APPLICATION_NAME = 'project03'
+           DEPLOYMENT_GROUP = 'project03-deploy'
+       }
+       
+       steps {
+           withAWS(region: 'ap-northesat-2', credentials: 'aws-credentials') {
+               deployment = awsDeploy applicationName: env.APPLICATION_NAME,
+                                           deploymentGroup: env.DEPLOYMENT_GROUP,
+                                           revision: [
+                                               gitHubLocation: [
+                                                   commitId: env.GIT_COMMIT,
+                                                   repository: 'cowlsla/project03-repo',
+                                                   branch: 'main'
+                                               ]
+                                           ],
+                                           deploymentConfig: 'CodeDeployDefault.AllAtOnce'
+                                              
+               deploymentId = deployment.deploymentId
+               timeout(time: 60, unit: 'MINUTES') {
+                   waitUntil {
+                       status = sh (
+                           script: "aws deploy get-deployment --deployment-id $deploymentId --query 'deploymentInfo.status'",
+                           returnStdout: true
+                       ).trim()
+                       println "Deployment status: ${status}"
+                       status == 'Succeeded'
+                   }
+               }
+           }
+       }
+   }
+}
 }
