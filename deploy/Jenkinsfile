@@ -55,5 +55,18 @@ pipeline {
        }
       }
     }
+     stage('Deploy to CodeDeploy') {
+            steps {
+              withAWS(region: '${REGION}', credentials: '${AWS_CREDENTIAL_NAME}') {
+                    sh "aws deploy create-deployment \
+                        --application-name project03 \
+                        --deployment-config-name CodeDeployDefault.OneAtATime \
+                        --deployment-group-name project03-deploy \
+                        --revision revisionType=ECR,image=$ECR_DOCKER_IMAGE \
+                        --region $REGION \
+                        --file-exists-behavior OVERWRITE"
+              }
+            }
+     }
    }
 }
