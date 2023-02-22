@@ -62,8 +62,8 @@ pipeline {
                         --application-name project03 \
                         --deployment-config-name CodeDeployDefault.OneAtATime \
                         --deployment-group-name project03-deploy \
-                        --revision revisionType=ECR,image=$ECR_DOCKER_IMAGE \
-                        --region $REGION \
+                        --revision revisionType=ECR,image='project03-spring-petclinic:1.0' \
+                        --region '$REGION' \
                         --file-exists-behavior OVERWRITE"
               }
             }
