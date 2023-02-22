@@ -62,8 +62,8 @@ pipeline {
             }
             
             steps {
-                withAWS(region: 'ap-northesat-2', credentials: 'awsEcrCredential') {
-                    def deployment = awsDeploy applicationName: env.APPLICATION_NAME,
+                withAWS(region: 'ap-northesat-2', credentials: 'aws-credentials') {
+                    deployment = awsDeploy applicationName: env.APPLICATION_NAME,
                                                 deploymentGroup: env.DEPLOYMENT_GROUP,
                                                 revision: [
                                                     gitHubLocation: [
@@ -74,15 +74,15 @@ pipeline {
                                                 ],
                                                 deploymentConfig: 'CodeDeployDefault.AllAtOnce'
                                                 
-                    def deploymentId = deployment.deploymentId
+                    deploymentId = deployment.deploymentId
                     timeout(time: 60, unit: 'MINUTES') {
                         waitUntil {
-                            def status = sh (
+                            status = sh (
                                 script: "aws deploy get-deployment --deployment-id $deploymentId --query 'deploymentInfo.status'",
                                 returnStdout: true
                             ).trim()
                             println "Deployment status: ${status}"
-                            return status == 'Succeeded'
+                            status == 'Succeeded'
                         }
                     }
                 }
