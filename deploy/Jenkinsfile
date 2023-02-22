@@ -17,8 +17,6 @@ pipeline {
     DOCKER_IMAGE_NAME = "project03-spring-petclinic"
     DOCKER_TAG = "1.0"
     REVISION_TYPE = 'GitHub' 
-    REPOSITORY = 'https://github.com/cowlsla/project03-repo'
-    BRANCH_NAME = '/main'
     COMMIT_ID = '$(git rev-parse HEAD)'
     ECR_REPOSITORY = "${AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-2.amazonaws.com"
     ECR_DOCKER_IMAGE = "${ECR_REPOSITORY}/${DOCKER_IMAGE_NAME}"
