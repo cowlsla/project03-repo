@@ -71,8 +71,6 @@ pipeline {
             sh """
                 aws deploy create-deployment \
                   --application-name ${APPLICATION_NAME} \
-                  --deployment-group-name ${DEPLOYMENT_GROUP} \
-                  --revision '{"revisionType":"GitHub", "gitHubLocation":{"repository":"cowlsla/project03-repo","commitId":"${COMMIT_ID}"}}'
                """
        }
      }
