@@ -69,12 +69,11 @@ pipeline {
         echo 'Deploy to CodeDeploy'
         // CodeDeploy 배포 시작
         sh """
-          aws deploy create-deployment \\
+           aws deploy create-deployment \\
             --region ${REGION} \\
             --application-name ${APPLICATION_NAME} \\
             --deployment-group-name ${DEPLOYMENT_GROUP} \\
-            --revision-type ${REVISION_TYPE} \\
-            --${REVISION_TYPE}-location imageUri=${ECR_REPOSITORY}/${ECR_DOCKER_IMAGE}:${ECR_DOCKER_TAG} \\
+            --revision-location '{"imageUri":"${ECR_REPOSITORY}/${ECR_DOCKER_IMAGE}:${ECR_DOCKER_TAG}"}' \\
             --deployment-config-name CodeDeployDefault.AllAtOnce \\
             --wait
             """
