@@ -64,16 +64,5 @@ pipeline {
                   userRemoteConfigs: [[url: env.REPOSITORY_NAME]]])
       }
     }
-    stage('Deploy to CodeDeploy') {
-      steps {
-        echo 'Deploy to CodeDeploy'
-        // CodeDeploy 생성
-            sh """
-                aws deploy create-application
-                --application-name code-deploy-example \
-                --compute-platform "Server" 
-               """
-       }
-     }
-   }
+  }
 }
