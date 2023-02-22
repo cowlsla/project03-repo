@@ -16,6 +16,10 @@ pipeline {
     REGION = "ap-northeast-2"
     DOCKER_IMAGE_NAME = "project03-spring-petclinic"
     DOCKER_TAG = "1.0"
+    REVISION_TYPE = 'GitHub' 
+    REPOSITORY = 'cowlsla/project03-repo'
+    BRANCH_NAME = '/main'
+    COMMIT_ID = '$(git rev-parse HEAD)'
     ECR_REPOSITORY = "${AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-2.amazonaws.com"
     ECR_DOCKER_IMAGE = "${ECR_REPOSITORY}/${DOCKER_IMAGE_NAME}"
     ECR_DOCKER_TAG = "${DOCKER_TAG}"
@@ -55,38 +59,78 @@ pipeline {
        }
       }
     }
+    environment {
+        AWS_REGION = 'your-aws-region'
+        AWS_PROFILE = 'your-aws-profile'
+        AWS_DEFAULT_OUTPUT = 'json'
+        APPLICATION_NAME = 'your-codedeploy-application-name'
+        DEPLOYMENT_GROUP = 'your-codedeploy-deployment-group'
+         // S3 또는 GitHub
+        S3_BUCKET = 'your-s3-bucket'
+        S3_OBJECT_KEY = 'your-s3-object-key'
+
+        LIFECYCLE_EVENT_HOOK_EXECUTION_ID = ''
+    }
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout([$class: 'GitSCM', 
+                          branches: [[name: env.BRANCH_NAME]], 
+                          userRemoteConfigs: [[url: 'https://github.com/your-github-repo.git']]])
+            }
+        }
+    }
      stage('Deploy to CodeDeploy') {
-       environment {
-           APPLICATION_NAME = 'project03'
-           DEPLOYMENT_GROUP = 'project03-deploy'
-       }
-       
        steps {
-           withAWS(region: 'ap-northesat-2', credentials: 'aws-credentials') {
-               deployment = awsDeploy applicationName: env.APPLICATION_NAME,
-                                           deploymentGroup: env.DEPLOYMENT_GROUP,
-                                           revision: [
-                                               gitHubLocation: [
-                                                   commitId: env.GIT_COMMIT,
-                                                   repository: 'cowlsla/project03-repo',
-                                                   branch: 'main'
-                                               ]
-                                           ],
-                                           deploymentConfig: 'CodeDeployDefault.AllAtOnce'
-                                              
-               deploymentId = deployment.deploymentId
-               timeout(time: 60, unit: 'MINUTES') {
-                   waitUntil {
-                       status = sh (
-                           script: "aws deploy get-deployment --deployment-id $deploymentId --query 'deploymentInfo.status'",
-                           returnStdout: true
-                       ).trim()
-                       println "Deployment status: ${status}"
-                       status == 'Succeeded'
-                   }
-               }
-           }
-       }
-   }
+         withCredentials([[
+                    credentialsId: 'aws-codedeploy',
+                    accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                    secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                ]]) {
+                    // CodeDeploy 배포 시작
+                   sh "aws deploy create-deployment \\
+                        --region ${env.REGION} \\
+                        --application-name ${env.APPLICATION_NAME} \\
+                        --deployment-group-name ${env.DEPLOYMENT_GROUP} \\
+                        --revision-type ${env.REVISION_TYPE} \\
+                        --${env.REVISION_TYPE.lower()}-location imageUri=${env.ECR_REGISTRY}/${env.ECR_REPOSITORY}:${env.IMAGE_TAG} \\
+                        --target-instances tagFilters='[{'Key':'${env.TARGET_TAG_KEY}','Type':'KEY_AND_VALUE','Value':'${env.TARGET_TAG_VALUE}'}]' \\
+                        --wait"
+                    
+                    // 배포 상태 확인
+                    script {
+                        def deploymentId = sh (
+                            script: "aws deploy list-deployments --region ${env.REGION} --application-name ${env.APPLICATION_NAME} --deployment-group-name ${env.DEPLOYMENT_GROUP} --sort-by DESCENDING --query deployments[0]",
+                            returnStdout: true
+                        ).trim().replaceAll('"', '')
+                        
+                        def deploymentInfo = sh (
+                            script: "aws deploy get-deployment --region ${env.REGION} --deployment-id ${deploymentId} --query deploymentInfo",
+                            returnStdout: true
+                        ).trim()
+                        
+                        def status = sh (
+                            script: "echo ${deploymentInfo} | jq -r '.status'",
+                            returnStdout: true
+                        ).trim()
+                        
+                        // CodeDeploy 배포 완료까지 대기
+                        while (status != 'Succeeded') {
+                            sleep 10
+                            deploymentInfo = sh (
+                                script: "aws deploy get-deployment --region ${env.REGION} --deployment-id ${deploymentId} --query deploymentInfo",
+                                returnStdout: true
+                            ).trim()
+                            status = sh (
+                                script: "echo ${deploymentInfo} | jq -r '.status'",
+                                returnStdout: true
+                            ).trim()
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
-}
+
