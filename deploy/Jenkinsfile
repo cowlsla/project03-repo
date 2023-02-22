@@ -70,12 +70,10 @@ pipeline {
         // CodeDeploy 배포 시작
         sh """
            aws deploy create-deployment \
-             --region ${REGION} \
-             --application-name ${APPLICATION_NAME} \
-             --deployment-group-name ${DEPLOYMENT_GROUP} \
-             --revision-location '{"revisionType":"${REVISION_TYPE}","gitHubLocation":{"repository":"${REPOSITORY_NAME}","commitId":"${COMMIT_ID}"}}' \
-             --deployment-config-name CodeDeployDefault.AllAtOnce \
-             --no-wait
+--region ap-northeast-2 \
+--application-name project03 \
+--deployment-group-name project03-deploy \
+--revision-location repository=Github,commitId=$(git rev-parse HEAD)
             """
                     // 배포 상태 확인
                     script {
