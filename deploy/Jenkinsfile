@@ -5,81 +5,57 @@ pipeline {
         jdk 'JDK11'
     }   
 
-    environment {
-        AWS_CREDENTIAL_NAME = "AWSCredentials"
+      environment {
+        AWS_CREDENTIAL_NAME = "awsEcrCredential"
+        AWS_ACCOUNT_ID = "257307634175"
         REGION = "ap-northeast-2"
-        DOCKER_IMAGE_NAME="project03-spring-petclinic"
-        DOCKER_TAG="1.0"
-        ECR_REPOSITORY = "${params.AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-2.amazonaws.com"
+        DOCKER_IMAGE_NAME = "project03-spring-petclinic"
+        DOCKER_TAG = "1.0"
+        REVISION_TYPE = 'GitHub' 
+        COMMIT_ID = '$(git rev-parse HEAD)'
+        ECR_REPOSITORY = "${AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-2.amazonaws.com"
         ECR_DOCKER_IMAGE = "${ECR_REPOSITORY}/${DOCKER_IMAGE_NAME}"
         ECR_DOCKER_TAG = "${DOCKER_TAG}"
-    }
-
-    stages {
-        stage('Git clone') {
-            steps {
-                git url: 'https://github.com/cowlsla/project03-repo', branch: 'main', credentialsId: 'cowlsla'
-            }
-            post {
-                success {
-                    echo 'success clone project'
-                }
-                failure {
-                    error 'fail clone project' // exit pipeline
-                }
-            }
+      }
+      stages {
+        stage ('Git Fetch') {
+          steps {
+            echo 'Git Fetch'
+            git url: "${REPOSITORY_NAME}", branch: "${BRANCH_NAME}", credentialsId: 'gitCredential'
+          }
         }
-        
-        stage ('mvn Build') {
-            steps {
-                sh 'mvn -Dmaven.test.failure.ignore=true install' 
-            }
-            post {
-                success {
-                    junit 'target/surefire-reports/**/*.xml' 
-                }
-            }
+        stage ('Mvn Build') {
+          steps {
+            echo 'Mvn Build'
+            sh 'mvn -Dmaven.test.failure.ignore=true clean package'
+          }
         }
-        
-        stage ('Docker Build') {
-            steps {
-                dir("${env.WORKSPACE}") {
-                    sh 'docker build -t ${ECR_DOCKER_IMAGE}:${ECR_DOCKER_TAG} .'
-                }
+        stage ('Docker Image') {
+          steps {
+            echo 'Docker Image'
+            dir("${env.WORKSPACE}") {
+              sh "docker build -t ${ECR_DOCKER_IMAGE}:${ECR_DOCKER_TAG} ./"
             }
-            
-            post {
-                success {
-                    echo "Docker build success!"
-                }
-            }
-        }       
+          }
+        }
+        stage ('Image Push') {
+          steps {
+            echo 'Image Push' 
+            script{
+              // cleanup current user docker credentials
+              sh 'rm -f ~/.dockercfg ~/.docker/config.json || true'                    
 
-        stage('Push Docker Image') {
-            steps {
-                echo "Push Docker Image to ECR"
-                script{
-                    // cleanup current user docker credentials
-                    sh 'rm -f ~/.dockercfg ~/.docker/config.json || true'                    
-                   
-                    docker.withRegistry("https://${ECR_REPOSITORY}", "ecr:${REGION}:${AWS_CREDENTIAL_NAME}") {
-                      docker.image("${ECR_DOCKER_IMAGE}:${ECR_DOCKER_TAG}").push()
-                    }
-                }
+              docker.withRegistry("https://${ECR_REPOSITORY}", "ecr:${REGION}:${AWS_CREDENTIAL_NAME}") {
+                docker.image("${ECR_DOCKER_IMAGE}:${ECR_DOCKER_TAG}").push()
+              }
             }
-            post {
-                success {
-                    echo "Push Docker Image success!"
-                }
-            }
+          }
         }
         stage('Upload to S3') {
             steps {
                 echo "Upload to S3"
-                sh '''
-                zip -r deploy-1.0.zip ./scripts appspec.yml
-                aws s3 cp --region ap-northeast-2 --acl private ./deploy-1.0.zip s3://project03-codeproject
-                '''
+                sh 'zip -r deploy-1.0.zip /deploy/scripts /appspec.yml'
+                sh 'aws s3 cp --region ap-northeast-2 --acl private ./deploy-1.0.zip s3://project00-codedeploy'
             }
         }
         stage('Codedeploy Workload') {
