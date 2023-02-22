@@ -67,50 +67,13 @@ pipeline {
     stage('Deploy to CodeDeploy') {
       steps {
         echo 'Deploy to CodeDeploy'
-        // CodeDeploy 배포 시작
+        // CodeDeploy 생성
             sh """
                 aws deploy create-deployment \
                   --application-name ${APPLICATION_NAME} \
                   --deployment-group-name ${DEPLOYMENT_GROUP} \
                   --revision '{"revisionType":"GitHub", "gitHubLocation":{"repository":"cowlsla/project03-repo","commitId":"${COMMIT_ID}"}}'
-                aws deploy create-deployment-group \
-                  --application-name ${APPLICATION_NAME} \
-                  --auto-scaling-groups project03-auto-scaling \
-                  --deployment-group-name ${DEPLOYMENT_GROUP} \
-                  --service-role-arn arn:aws:iam::257307634175:role/project03-service-code-deploy-role \
-                  --deployment-style '{"deploymentType":"IN_PLACE","deploymentOption": "WITH_TRAFFIC_CONTROL"}' \
-                  --load-balancer-info '{"targetGroupInfoList":[{"name":"project03-pet"}]}'
-                """
-                    // 배포 상태 확인
-                    script {
-                        def deploymentId = sh (
-                            script: "aws deploy list-deployments --region ${env.REGION} --application-name ${env.APPLICATION_NAME} --deployment-group-name ${env.DEPLOYMENT_GROUP} --sort-by DESCENDING --query deployments[0]",
-                            returnStdout: true
-                        ).trim().replaceAll('"', '')
-                        
-                        def deploymentInfo = sh (
-                            script: "aws deploy get-deployment --region ${env.REGION} --deployment-id ${deploymentId} --query deploymentInfo",
-                            returnStdout: true
-                        ).trim()
-                        
-                        def status = sh (
-                            script: "echo ${deploymentInfo} | jq -r '.status'",
-                            returnStdout: true
-                        ).trim()
-                        
-                        // CodeDeploy 배포 완료까지 대기
-                        while (status != 'Succeeded') {
-                            sleep 10
-                            deploymentInfo = sh (
-                                script: "aws deploy get-deployment --region ${env.REGION} --deployment-id ${deploymentId} --query deploymentInfo",
-                                returnStdout: true
-                            ).trim()
-                            status = sh (
-                                script: "echo ${deploymentInfo} | jq -r '.status'",
-                                returnStdout: true
-                            ).trim()
-                        }
-                    }
+               """
        }
      }
    }
