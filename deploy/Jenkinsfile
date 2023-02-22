@@ -59,19 +59,6 @@ pipeline {
        }
       }
     }
-    environment {
-        AWS_REGION = 'your-aws-region'
-        AWS_PROFILE = 'your-aws-profile'
-        AWS_DEFAULT_OUTPUT = 'json'
-        APPLICATION_NAME = 'your-codedeploy-application-name'
-        DEPLOYMENT_GROUP = 'your-codedeploy-deployment-group'
-         // S3 또는 GitHub
-        S3_BUCKET = 'your-s3-bucket'
-        S3_OBJECT_KEY = 'your-s3-object-key'
-
-        LIFECYCLE_EVENT_HOOK_EXECUTION_ID = ''
-    }
-    
     stages {
         stage('Checkout') {
             steps {
@@ -89,7 +76,7 @@ pipeline {
                     secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                 ]]) {
                     // CodeDeploy 배포 시작
-                   sh """
+                   sh ""
                       aws deploy create-deployment \\
                         --region ${env.REGION} \\
                         --application-name ${env.APPLICATION_NAME} \\
@@ -98,7 +85,7 @@ pipeline {
                         --${env.REVISION_TYPE.lower()}-location imageUri=${env.ECR_REGISTRY}/${env.ECR_REPOSITORY}:${env.IMAGE_TAG} \\
                         --target-instances tagFilters='[{'Key':'${env.TARGET_TAG_KEY}','Type':'KEY_AND_VALUE','Value':'${env.TARGET_TAG_VALUE}'}]' \\
                         --wait
-                      """"
+                      ""
                     
                     // 배포 상태 확인
                     script {
