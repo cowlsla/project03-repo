@@ -70,12 +70,7 @@ pipeline {
     }
      stage('Deploy to CodeDeploy') {
        steps {
-         withCredentials([[
-                    credentialsId: 'aws-codedeploy',
-                    accessKeyVariable: 'AWS_ACCESS_KEY_ID',
-                    secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
-                ]]) {
-                    // CodeDeploy 배포 시작
+         // CodeDeploy 배포 시작
                    sh ""
                       aws deploy create-deployment
                         --region ${env.REGION} \\
