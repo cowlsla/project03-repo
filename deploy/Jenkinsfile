@@ -76,8 +76,10 @@ pipeline {
         stage('Upload to S3') {
             steps {
                 echo "Upload to S3"
+                sh '''
                 zip -r deploy-1.0.zip ./scripts appspec.yml
                 aws s3 cp --region ap-northeast-2 --acl private ./deploy-1.0.zip s3://project03-codeproject
+                '''
             }
         }
         stage('Codedeploy Workload') {
