@@ -91,6 +91,7 @@ pipeline {
                     --deployment-group-name project03-deploy \
                     --s3-location bucket=project03-codedeploy,bundleType=zip,key=deploy-1.0.zip
                     '''
+            }
         }
     }
 }
