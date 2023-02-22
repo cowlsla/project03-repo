@@ -89,7 +89,7 @@ pipeline {
                     secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                 ]]) {
                     // CodeDeploy 배포 시작
-                   sh "
+                   sh """
                       aws deploy create-deployment \\
                         --region ${env.REGION} \\
                         --application-name ${env.APPLICATION_NAME} \\
@@ -98,7 +98,7 @@ pipeline {
                         --${env.REVISION_TYPE.lower()}-location imageUri=${env.ECR_REGISTRY}/${env.ECR_REPOSITORY}:${env.IMAGE_TAG} \\
                         --target-instances tagFilters='[{'Key':'${env.TARGET_TAG_KEY}','Type':'KEY_AND_VALUE','Value':'${env.TARGET_TAG_VALUE}'}]' \\
                         --wait
-                      "
+                      """"
                     
                     // 배포 상태 확인
                     script {
