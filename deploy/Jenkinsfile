@@ -74,7 +74,7 @@ pipeline {
             --application-name ${APPLICATION_NAME} \\
             --deployment-group-name ${DEPLOYMENT_GROUP} \\
             --revision-type ${REVISION_TYPE} \\
-            --${REVISION_TYPE.lower()}-location imageUri=${ECR_REPOSITORY}/${ECR_DOCKER_IMAGE}:${ECR_DOCKER_TAG} \\
+            --${REVISION_TYPE}-location imageUri=${ECR_REPOSITORY}/${ECR_DOCKER_IMAGE}:${ECR_DOCKER_TAG} \\
             --target-instances tagFilters='[{'Key':'${TARGET_TAG_KEY}','Type':'KEY_AND_VALUE','Value':'${TARGET_TAG_VALUE}'}]' \\
             --wait
             """
