@@ -70,7 +70,10 @@ pipeline {
         // CodeDeploy 생성
             sh """
                 aws deploy create-deployment \
-                  --application-name ${APPLICATION_NAME} \
+                    --application-name project03 \
+                    --deployment-config-name CodeDeployDefault.OneAtATime \
+                    --deployment-group-name project03-deploy \
+                    --description "project03 deployment" \
                """
        }
      }
