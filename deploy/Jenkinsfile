@@ -73,7 +73,7 @@ pipeline {
          // CodeDeploy 배포 시작
                    sh ""
                       aws deploy create-deployment
-                        --region ${env.REGION} \\
+                        --region ap-northeast-2 \\
                         --application-name ${env.APPLICATION_NAME} \\
                         --deployment-group-name ${env.DEPLOYMENT_GROUP} \\
                         --revision-type ${env.REVISION_TYPE} \\
