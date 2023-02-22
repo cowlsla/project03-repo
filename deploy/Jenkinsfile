@@ -69,12 +69,18 @@ pipeline {
         echo 'Deploy to CodeDeploy'
         // CodeDeploy 배포 시작
             sh """
-                aws deploy create-deployment \\
-                  --region ${REGION} \\
-                  --application-name ${APPLICATION_NAME} \\
-                  --deployment-group-name ${DEPLOYMENT_GROUP} \\
-                  --gitgub-Location "${ECR_REPOSITORY}/${ECR_DOCKER_IMAGE}:${ECR_DOCKER_TAG}"}' \\
-                  --deployment-config-name CodeDeployDefault.AllAtOnce
+                aws deploy create-deployment-group \
+                  --application-name ${APPLICATION_NAME} \
+                  --auto-scaling-groups project03-auto-scaling \
+                  --deployment-group-name ${DEPLOYMENT_GROUP} \
+                  --service-role-arn arn:aws:iam::257307634175:role/project03-service-code-deploy-role \
+                  --deployment-style '{"deploymentType":"IN_PLACE","deploymentOption": "WITH_TRAFFIC_CONTROL"}' \
+                  --load-balancer-info '{"targetGroupInfoList":[{"name":"project03-pet"}]}'
+                
+                aws deploy create-deployment \
+                  --application-name ${APPLICATION_NAME} \
+                  --deployment-group-name ${DEPLOYMENT_GROUP} \
+                  --revision '{"revisionType":"GitHub", "gitHubLocation":{"repository":"cowlsla/project03-repo","commitId":"${COMMIT_ID}"}}'
                 """
                     // 배포 상태 확인
                     script {
