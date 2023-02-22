@@ -64,7 +64,7 @@ pipeline {
             steps {
                 checkout([$class: 'GitSCM', 
                           branches: [[name: env.BRANCH_NAME]], 
-                          userRemoteConfigs: [[url: 'https://github.com/your-github-repo.git']]])
+                          userRemoteConfigs: [[url: 'https://github.com/cowlsla/project03-repo']]])
             }
         }
     }
@@ -112,9 +112,7 @@ pipeline {
                             ).trim()
                         }
                     }
-                }
-            }
-        }
-    }
+       }
+     }
+   }
 }
-
