@@ -68,15 +68,14 @@ pipeline {
       steps {
         echo 'Deploy to CodeDeploy'
         // CodeDeploy 배포 시작
-        sh """
-            aws deploy create-deployment \\
-              --region ${REGION} \\
-              --application-name ${APPLICATION_NAME} \\
-              --deployment-group-name ${DEPLOYMENT_GROUP} \\
-              --revision-location '{"imageUri":"${ECR_REPOSITORY}/${ECR_DOCKER_IMAGE}:${ECR_DOCKER_TAG}"}' \\
-              --deployment-config-name CodeDeployDefault.AllAtOnce \\
-              --wait
-            """
+            sh """
+                aws deploy create-deployment \\
+                  --region ${REGION} \\
+                  --application-name ${APPLICATION_NAME} \\
+                  --deployment-group-name ${DEPLOYMENT_GROUP} \\
+                  --revision-location '{"${REVISION_TYPE}Location": "${ECR_REPOSITORY}/${ECR_DOCKER_IMAGE}:${ECR_DOCKER_TAG}"}' \\
+                  --deployment-config-name CodeDeployDefault.AllAtOnce
+                """
                     // 배포 상태 확인
                     script {
                         def deploymentId = sh (
