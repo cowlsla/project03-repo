@@ -57,13 +57,13 @@ pipeline {
     }
      stage('Deploy to CodeDeploy') {
             steps {
-              withAWS(region: '${REGION}', credentials: '${AWS_CREDENTIAL_NAME}') {
+              withAWS(region: 'ap-northeast-2', credentials: 'awsEcrCredential') {
                     sh "aws deploy create-deployment \
-                        --application-name project03 \
-                        --deployment-config-name CodeDeployDefault.OneAtATime \
-                        --deployment-group-name project03-deploy \
-                        --revision revisionType=ECR,image='project03-spring-petclinic:1.0' \
-                        --region '$REGION' \
+                        --application-name= 'project03' \
+                        --deployment-config-name= 'project03-deploy' CodeDeployDefault.OneAtATime \
+                        --deployment-group-name 'project03-pet' \
+                        --revision revisionType= 'ECR',image='project03-spring-petclinic:1.0' \
+                        --region 'ap-northeast-2' \
                         --file-exists-behavior OVERWRITE"
               }
             }
