@@ -69,11 +69,9 @@ pipeline {
         echo 'Deploy to CodeDeploy'
         // CodeDeploy 생성
             sh """
-                aws deploy create-deployment \
-                    --application-name project03 \
-                    --deployment-config-name CodeDeployDefault.OneAtATime \
-                    --deployment-group-name project03-deploy \
-                    --description "project03 deployment" \
+                aws deploy create-application
+                --application-name code-deploy-example \
+                --compute-platform "Server" 
                """
        }
      }
