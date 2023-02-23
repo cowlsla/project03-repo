@@ -6,7 +6,7 @@ pipeline {
     }   
 
     environment {
-        AWS_CREDENTIAL_NAME = "awsEcrCredential"
+        AWS_CREDENTIAL_NAME = "AWSCredentials"
         REGION = "ap-northeast-2"
         DOCKER_IMAGE_NAME="project03-spring-petclinic"
         DOCKER_TAG="1.0"
