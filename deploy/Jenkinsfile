@@ -91,26 +91,6 @@ pipeline {
                     --deployment-group-name project03-deploy \
                     --s3-location bucket=project03-codeproject,bundleType=zip,key=deploy-1.0.zip
                     '''
-                def DEPLOYMENT_ID = sh(script: "cat DEPLOYMENT_ID.json | grep -o '\"deploymentId\": \"[^\"]*' | cut -d'\"' -f4", returnStdout: true).trim()
-                echo "$DEPLOYMENT_ID"
-                sh "rm -rf ./DEPLOYMENT_ID.json"
-                def DEPLOYMENT_RESULT = ""
-                while("$DEPLOYMENT_RESULT" != "\"Succeeded\"") {
-                    DEPLOYMENT_RESULT = sh(
-                        script:"aws deploy get-deployment \
-                                    --region ${REGION} \
-                                    --query \"deploymentInfo.status\" \
-                                    --deployment-id ${DEPLOYMENT_ID}",
-                        returnStdout: true
-                    ).trim()
-                    echo "$DEPLOYMENT_RESULT"
-                    if ("$DEPLOYMENT_RESULT" == "\"Failed\"") {
-                        currentBuild.result = 'FAILURE'
-                        break
-                    }
-                    sleep(10) // sleep 10s
-                }
-                currentBuild.result = 'SUCCESS'
             }
         }
     }
